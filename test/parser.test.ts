@@ -44,11 +44,6 @@ Algorithm: 25
 
 lol
 `
-let title_with_label = new RegExp(/\#\+\s*.+/g)
-Parser.Commands.test("#+ apolo")
-let title = new RegExp(/\#\+\s*/g)
-title.test("#+")
-Parser.Commands.test("#+")
 
 describe("Tasklist Block Parser", () => {
   test("string should be parsed as a block", () => {
@@ -63,11 +58,48 @@ describe("Tasklist Block Parser", () => {
     })
 })
 
-describe("Task Parser", () => {
-test(" Describe Test", ()=> {
-expect().toBe()
+describe("Testing Task Parser", () => {
+  test("Should Parse Forward Task Syntax", () => {
+    expect(Parser.Tasks.test("test 30")).toBeInstanceOf(Task)
+  })
+  test("Should Parse Backwards Task Syntax", () => {
+    expect(Parser.Tasks.test("30 test")).toBeInstanceOf(Task)
+  })
+  test("Should Parse Colon Task Syntax", () => {
+    expect(Parser.Tasks.test("test: 30")).toBeInstanceOf(Task)
+  })
+  test("Should Not Parse Colon Task as Forward Task", () => {
+    expect(Parser.Tasks.ForwardTaskValidator.validator.test("test:30")).toBe(
+      false
+    )
+  })
+  test("Should Not Parse Forward Task as Backwards Task", () => {
+    expect(Parser.Tasks.BackwardsTaskValidator.validator.test("test 30")).toBe(
+      false
+    )
+  })
+  test("Should Not Parse Malformed Colon Task as Colon Task", () => {
+    expect(Parser.Tasks.ColonTaskValidator.validator.test("tes:t 30")).toBe(
+      false
+    )
+  })
 })
 
+describe("Testing Command Parser", () => {
+  test("Should Parse Title Syntax", () => {
+    expect(Parser.Tasks.test("#+")).toBeInstanceOf(Parser.Commands.CTask)
+  })
+  test("Should Parse Mult Syntax", () => {
+    expect(Parser.Tasks.test("x2")).toBeInstanceOf(Parser.Commands.CTask)
+  })
+  test("Should Parse Ref Syntax", () => {
+    expect(Parser.Tasks.test("study")).toBeInstanceOf(Parser.Commands.CTask)
+  })
+  test("Should Parse Title with Label Syntax", () => {
+    expect(Parser.Tasks.test("#+ My Test Tasklist")).toBeInstanceOf(
+      Parser.Commands.CTask
+    )
+  })
 })
 
 export {}

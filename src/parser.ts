@@ -28,7 +28,7 @@ export namespace Parser {
     }
     let forward_validator = new RegExp(/(?<!.+)[a-zA-Z]+\s+\d+\s*(?!.)/g)
     let backward_validator = new RegExp(/(?<!.+)\d+\s+.+/g)
-    let task_with_colon = new RegExp(/.*\:\s+\d+/g)
+    let task_with_colon = new RegExp(/.*\:\s*\d+/g)
 
     let get_forward_string = (str: string) =>
       str.match(forward_validator)![0].split(" ")
@@ -42,10 +42,28 @@ export namespace Parser {
     let backward_task = ([length, name]: [string, string]) =>
       new Task(name, Number(length))
 
+    export const ForwardTaskValidator = new TaskValidator(
+      forward_validator,
+      get_forward_string,
+      forward_task
+    )
+
+    export const BackwardsTaskValidator = new TaskValidator(
+      backward_validator,
+      get_backward_string,
+      backward_task
+    )
+
+    export const ColonTaskValidator = new TaskValidator(
+      task_with_colon,
+      get_colon_string,
+      forward_task
+    )
+
     const validators = [
-      new TaskValidator(forward_validator, get_forward_string, forward_task),
-      new TaskValidator(backward_validator, get_backward_string, backward_task),
-      new TaskValidator(task_with_colon, get_colon_string, forward_task),
+      ForwardTaskValidator,
+      BackwardsTaskValidator,
+      ColonTaskValidator,
     ]
 
     export const test = (str: string) => {
@@ -73,7 +91,7 @@ export namespace Parser {
       }
     }
 
-    class CTask implements CommandTask {
+    export class CTask implements CommandTask {
       type: CommandTask["type"]
       data: string | number
       constructor(name: CommandTask["type"], data: string | number) {
