@@ -100,9 +100,9 @@ export namespace Parser {
       }
     }
 
-    let title = new RegExp(/\#\+\s*/g)
+    let title = new RegExp(/\#\+\s*(?!.+)/g)
     let title_with_label = new RegExp(/\#\+\s*.+/g)
-    let just_strings = new RegExp(/(?<!.+)[a-zA-Z]+\b\n/g)
+    let just_strings = new RegExp(/^[a-zA-Z]+\b/g)
     let multiplier_command = new RegExp(/(?<=^x)\d(?!.)/g)
 
     let cTaskMemo = (name: CommandTask["type"]) => (data: string | number) =>

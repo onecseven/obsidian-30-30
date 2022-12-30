@@ -87,17 +87,31 @@ describe("Testing Task Parser", () => {
 
 describe("Testing Command Parser", () => {
   test("Should Parse Title Syntax", () => {
-    expect(Parser.Tasks.test("#+")).toBeInstanceOf(Parser.Commands.CTask)
+    expect(Parser.Commands.test("#+")).toBeInstanceOf(Parser.Commands.CTask)
   })
   test("Should Parse Mult Syntax", () => {
-    expect(Parser.Tasks.test("x2")).toBeInstanceOf(Parser.Commands.CTask)
+    expect(Parser.Commands.test("x2")).toBeInstanceOf(Parser.Commands.CTask)
   })
   test("Should Parse Ref Syntax", () => {
-    expect(Parser.Tasks.test("study")).toBeInstanceOf(Parser.Commands.CTask)
+    expect(Parser.Commands.test("study")).toBeInstanceOf(Parser.Commands.CTask)
   })
   test("Should Parse Title with Label Syntax", () => {
-    expect(Parser.Tasks.test("#+ My Test Tasklist")).toBeInstanceOf(
+    expect(Parser.Commands.test("#+ My Test Tasklist")).toBeInstanceOf(
       Parser.Commands.CTask
+    )
+  })
+  test("Should Not Parse Malformed Title Syntax", () => {
+    expect(Parser.Commands.test("#-  ")).toBe(null)
+  })
+  test("Should Not Parse Malformed Mult Syntax", () => {
+    expect(Parser.Commands.test("xx2 ")).toBe(null)
+  })
+  test("Should Not Parse Malformed Ref Syntax", () => {
+    expect(Parser.Commands.test("x1study")).toBe(null)
+  })
+  test("Should Not Parse Malformed Title with Label Syntax", () => {
+    expect(Parser.Commands.test("#- My Test Tasklist ")).toBe(
+      null
     )
   })
 })
