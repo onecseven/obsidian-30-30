@@ -19,9 +19,15 @@ Data Structures: 25
 Break: 5
 Algorithm: 25
 
-#+Pollo
+#Pollo
 
 lol
+-#`
+
+let golden = `#+ Research
+3 A
+3 B
+3 C
 -#`
 
 let bad_text = `#+ Research
@@ -45,87 +51,82 @@ Algorithm: 25
 lol
 `
 
-let y = new TaskList(
-  'name',
-  [
-    new Task("First", 3),
-    new Task("Second", 3),
-    new Task("Third", 3),
-  ]
-)
+let fucked_up_text = `#+ Research
+puddles 25
+#+ Pollo
+skyying 10
+-#`
 
 
-y.start() //?
+describe("Tasklist Block Parser", () => {
+  test("string should be parsed as a block", () => {
+    expect(Parser.contains_tasklist({ data: test_text } as MarkdownView)).toBe(
+      true
+    )
+  }),
+    test("string should not be parsed as a block", () => {
+      expect(Parser.contains_tasklist({ data: bad_text } as MarkdownView)).toBe(
+        false
+      )
+    })
+})
 
-// describe("Tasklist Block Parser", () => {
-//   test("string should be parsed as a block", () => {
-//     expect(Parser.contains_tasklist({ data: test_text } as MarkdownView)).toBe(
-//       true
-//     )
-//   }),
-//     test("string should not be parsed as a block", () => {
-//       expect(Parser.contains_tasklist({ data: bad_text } as MarkdownView)).toBe(
-//         false
-//       )
-//     })
-// })
+describe("Testing Task Parser", () => {
+  test("Should Parse Forward Task Syntax", () => {
+    expect(Parser.Tasks.test("test 30")).toBeInstanceOf(Task)
+  })
+  test("Should Parse Backwards Task Syntax", () => {
+    expect(Parser.Tasks.test("30 test")).toBeInstanceOf(Task)
+  })
+  test("Should Parse Colon Task Syntax", () => {
+    expect(Parser.Tasks.test("test: 30")).toBeInstanceOf(Task)
+  })
+  test("Should Not Parse Colon Task as Forward Task", () => {
+    expect(Parser.Tasks.ForwardTaskValidator.validator.test("test:30")).toBe(
+      false
+    )
+  })
+  test("Should Not Parse Forward Task as Backwards Task", () => {
+    expect(Parser.Tasks.BackwardsTaskValidator.validator.test("test 30")).toBe(
+      false
+    )
+  })
+  test("Should Not Parse Malformed Colon Task as Colon Task", () => {
+    expect(Parser.Tasks.ColonTaskValidator.validator.test("tes:t 30")).toBe(
+      false
+    )
+  })
+})
 
-// describe("Testing Task Parser", () => {
-//   test("Should Parse Forward Task Syntax", () => {
-//     expect(Parser.Tasks.test("test 30")).toBeInstanceOf(Task)
-//   })
-//   test("Should Parse Backwards Task Syntax", () => {
-//     expect(Parser.Tasks.test("30 test")).toBeInstanceOf(Task)
-//   })
-//   test("Should Parse Colon Task Syntax", () => {
-//     expect(Parser.Tasks.test("test: 30")).toBeInstanceOf(Task)
-//   })
-//   test("Should Not Parse Colon Task as Forward Task", () => {
-//     expect(Parser.Tasks.ForwardTaskValidator.validator.test("test:30")).toBe(
-//       false
-//     )
-//   })
-//   test("Should Not Parse Forward Task as Backwards Task", () => {
-//     expect(Parser.Tasks.BackwardsTaskValidator.validator.test("test 30")).toBe(
-//       false
-//     )
-//   })
-//   test("Should Not Parse Malformed Colon Task as Colon Task", () => {
-//     expect(Parser.Tasks.ColonTaskValidator.validator.test("tes:t 30")).toBe(
-//       false
-//     )
-//   })
-// })
-
-// describe("Testing Command Parser", () => {
-//   test("Should Parse Title Syntax", () => {
-//     expect(Parser.Commands.test("#+")).toBeInstanceOf(Parser.Commands.CTask)
-//   })
-//   test("Should Parse Mult Syntax", () => {
-//     expect(Parser.Commands.test("x2")).toBeInstanceOf(Parser.Commands.CTask)
-//   })
-//   test("Should Parse Ref Syntax", () => {
-//     expect(Parser.Commands.test("study")).toBeInstanceOf(Parser.Commands.CTask)
-//   })
-//   test("Should Parse Title with Label Syntax", () => {
-//     expect(Parser.Commands.test("#+ My Test Tasklist")).toBeInstanceOf(
-//       Parser.Commands.CTask
-//     )
-//   })
-//   test("Should Not Parse Malformed Title Syntax", () => {
-//     expect(Parser.Commands.test("#-  ")).toBe(null)
-//   })
-//   test("Should Not Parse Malformed Mult Syntax", () => {
-//     expect(Parser.Commands.test("xx2 ")).toBe(null)
-//   })
-//   test("Should Not Parse Malformed Ref Syntax", () => {
-//     expect(Parser.Commands.test("x1study")).toBe(null)
-//   })
-//   test("Should Not Parse Malformed Title with Label Syntax", () => {
-//     expect(Parser.Commands.test("#- My Test Tasklist ")).toBe(
-//       null
-//     )
-//   })
-// })
+describe("Testing Command Parser", () => {
+  test("Should Parse Title Syntax", () => {
+    expect(Parser.Commands.test("#+")).toBeInstanceOf(Parser.Commands.CTask)
+  })
+  test("Should Parse Mult Syntax", () => {
+    expect(Parser.Commands.test("x2")).toBeInstanceOf(Parser.Commands.CTask)
+  })
+  test("Should Parse Ref Syntax", () => {
+    expect(Parser.Commands.test("study")).toBeInstanceOf(Parser.Commands.CTask)
+  })
+  test("Should Parse Title with Label Syntax", () => {
+    expect(Parser.Commands.test("#+ My Test Tasklist")).toBeInstanceOf(
+      Parser.Commands.CTask
+    )
+  })
+  test("Should Not Parse Malformed Title Syntax", () => {
+    expect(Parser.Commands.test("#-  ")).toBe(null)
+  })
+  test("Should Not Parse Malformed Mult Syntax", () => {
+    expect(Parser.Commands.test("xx2 ")).toBe(null)
+  })
+  test("Should Not Parse Malformed Ref Syntax", () => {
+    expect(Parser.Commands.test("x1study")).toBe(null)
+  })
+  test("Should Not Parse Malformed Title with Label Syntax", () => {
+    expect(Parser.Commands.test("#- My Test Tasklist ")).toBe(
+      null
+    )
+  })
+})
 
 export {}

@@ -69,13 +69,7 @@ export class TaskList implements TaskList {
     return this.timer !== null
   }
   
-  end_tasklist() {
-    this.looping ? 
-    this.start() :
-    this.stop()
-  }
-
-  send_task_to_bottom() {
+  private send_task_to_bottom() {
     let wasPlaying = this.isPlaying
     if (this.isPlaying) this.stop()
     let result = this.tasks.slice()
@@ -83,6 +77,13 @@ export class TaskList implements TaskList {
     this.tasks = result
     if (wasPlaying) this.start()
   }
+  
+  private end_tasklist() {
+    this.looping ? 
+    this.start() :
+    this.stop()
+  }
+
 
   start() {
     if (this.isPlaying) this.stop()

@@ -1,7 +1,7 @@
-import { stat } from "fs"
 import { MarkdownView } from "obsidian"
 import { Task, TaskList } from "./primitives"
-export const doTimes = (iteratee: Function, n: number): boolean => {
+
+const doTimes = (iteratee: Function, n: number): boolean => {
   if (n < 1 || n > 9007199254740991) {
     return false
   }
@@ -155,10 +155,10 @@ export namespace Parser {
     full_block.test(view.data)
 
   export const get_tasklist_blocks = (view: MarkdownView) =>
-    view.data.match(full_block)!
+    view.data.match(full_block)
 
-  export const parse_tasklist = (matches: RegExpMatchArray) => {
-    let compromise = matches[0].split("\n")
+  export const parse_tasklist = (match: string) => {
+    let compromise = match.split("\n")
     let taskList: Task[] = []
     let task_title: string = ""
     for (let statement of compromise) {
@@ -186,11 +186,24 @@ export namespace Parser {
               .map((t) => t.name)
               .findIndex((t) => t === referenced)
             if (task_index === -1) break
-            taskList.push(new Task(taskList[task_index].name, taskList[task_index].length))
+            taskList.push(
+              new Task(taskList[task_index].name, taskList[task_index].length)
+            )
             break
         }
       }
     }
     return new TaskList(task_title, taskList)
   }
+  export const get_tasklists = (view: MarkdownView): TaskList[] => {
+    if (!contains_tasklist(view)) return []
+    let matches = get_tasklist_blocks(view)!
+    let result = []
+    for (let match of matches) {
+      result.push(parse_tasklist(match))
+    }
+    return result
+  }
 }
+
+export default Parser.get_tasklists
