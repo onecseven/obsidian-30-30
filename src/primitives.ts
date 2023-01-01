@@ -1,3 +1,5 @@
+import { throws } from "assert"
+
 function getUniqueID() {
   function s4() {
     return Math.floor((1 + Math.random()) * 0x10000)
@@ -11,10 +13,9 @@ export class StopTask implements StopTask {
   id = getUniqueID()
   name = "BREAK"
   length = 0
-  remaining_length = 0
+  remaining_seconds = 0
   stopcall: () => void
   constructor(stopcall: () => void) {
-    console.log("stopped")
     this.stopcall = stopcall
   }
   tick(cb: () => void) {
@@ -29,22 +30,22 @@ export class Task implements Task {
   id: string = getUniqueID()
   name: string
   length: number
-  remaining_length: number
+  remaining_seconds: number
 
   constructor(_name: string, _length: number) {
     this.name = _name
     this.length = _length
-    // this.remaining_length = _length * 60
-    this.remaining_length = _length //dev
+    this.remaining_seconds = _length * 60
+    // this.remaining_seconds = _length //dev
 
     this.id
   }
 
   tick(onEnd: () => void) {
     console.count("tick")
-    this.remaining_length - 1
-      ? this.remaining_length--
-      : (this.remaining_length = this.length) && onEnd()
+    this.remaining_seconds - 1
+      ? this.remaining_seconds--
+      : (this.remaining_seconds = this.length) && onEnd()
   }
 }
 
@@ -57,7 +58,7 @@ export class TaskList implements TaskList {
 
   constructor(_name: string, _tasks: Task[]) {
     this.name = _name
-    this.tasks = [..._tasks.slice(), new StopTask(() => this.stop())]
+    this.tasks = [..._tasks.slice(), new StopTask(() => this.end_tasklist())]
   }
 
   private get current_task(): Task {
@@ -67,9 +68,14 @@ export class TaskList implements TaskList {
   get isPlaying() {
     return this.timer !== null
   }
+  
+  end_tasklist() {
+    this.looping ? 
+    this.start() :
+    this.stop()
+  }
 
   send_task_to_bottom() {
-    console.log("send to bottom")
     let wasPlaying = this.isPlaying
     if (this.isPlaying) this.stop()
     let result = this.tasks.slice()
@@ -79,7 +85,6 @@ export class TaskList implements TaskList {
   }
 
   start() {
-    console.log(this.current_task.name)
     if (this.isPlaying) this.stop()
     this.timer = setInterval(
       () => this.current_task.tick(() => this.send_task_to_bottom()),
@@ -88,10 +93,8 @@ export class TaskList implements TaskList {
   }
 
   stop() {
-    if (!this.isPlaying) return
     clearInterval(this.timer!)
     this.timer = null
-    if (this.looping) this.start()
   }
 
   toggle_loop() {

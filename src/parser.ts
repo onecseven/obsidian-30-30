@@ -1,5 +1,16 @@
+import { stat } from "fs"
 import { MarkdownView } from "obsidian"
-import { Task } from "./primitives"
+import { Task, TaskList } from "./primitives"
+export const doTimes = (iteratee: Function, n: number): boolean => {
+  if (n < 1 || n > 9007199254740991) {
+    return false
+  }
+  while (n > 0) {
+    iteratee()
+    n--
+  }
+  return true
+}
 
 export namespace Parser {
   interface validator {
@@ -78,11 +89,11 @@ export namespace Parser {
   export namespace Commands {
     class CommandValidator {
       validator: RegExp
-      get_string: (str: string) => string
-      get_task: (str: string) => CommandTask
+      get_string: (str: string) => string | number
+      get_task: (str: string | number) => CommandTask
       constructor(
         regex: RegExp,
-        getstr: (str: string) => string,
+        getstr: (str: string) => string | number,
         gettask: (str: string) => CommandTask
       ) {
         this.validator = regex
@@ -111,7 +122,8 @@ export namespace Parser {
       str.match(title_with_label)![0].split(" ")[1]
     let get_title_null = (str: string) => ""
     let get_solo_string = (str: string) => str.match(just_strings)![0]
-    let get_multiplier = (str: string) => str.match(multiplier_command)![0]
+    let get_multiplier = (str: string) =>
+      Number(str.match(multiplier_command)![0])
 
     const validators = [
       new CommandValidator(title, get_title_null, cTaskMemo("TITLE")),
@@ -136,6 +148,7 @@ export namespace Parser {
       return null
     }
   }
+
   let full_block = new RegExp(/\#\+(.)*?\-\#/gs)
 
   export const contains_tasklist = (view: MarkdownView): boolean =>
@@ -145,22 +158,39 @@ export namespace Parser {
     view.data.match(full_block)!
 
   export const parse_tasklist = (matches: RegExpMatchArray) => {
-    // #todo
-    let task_array: Task[] = []
-    // check for title
-    // check if str is task
-    //if it is, Task(str)
-    // if not, check if str is backward task, task_with_colon
-    // if it is, Task(str)
-    // elif check if its multiplier command
-    // if it is, copy the last task multiple times
-    // elif check if its just a string
-    // if it is, then check if there is already a task with that name
-    // if there is, copy that task
-    // if it is, check if its break,
-    // if its break, add StopTask
-    // if there's not StopTask
-    // add StopTask
-    // return TaskList
+    let compromise = matches[0].split("\n")
+    let taskList: Task[] = []
+    let task_title: string = ""
+    for (let statement of compromise) {
+      let task_attempt = Tasks.test(statement)
+      if (task_attempt) {
+        taskList.push(task_attempt)
+        continue
+      }
+      let command_attempt = Commands.test(statement)
+      if (command_attempt) {
+        switch (command_attempt.type) {
+          case "TITLE":
+            task_title = command_attempt.data as string
+            break
+          case "MULT":
+            let result: Task[] = []
+            doTimes(() => {
+              result.push(...taskList.slice())
+            }, command_attempt.data as number)
+            taskList = result
+            break
+          case "REF":
+            let referenced = command_attempt.data as string
+            let task_index = taskList
+              .map((t) => t.name)
+              .findIndex((t) => t === referenced)
+            if (task_index === -1) break
+            taskList.push(new Task(taskList[task_index].name, taskList[task_index].length))
+            break
+        }
+      }
+    }
+    return new TaskList(task_title, taskList)
   }
 }
