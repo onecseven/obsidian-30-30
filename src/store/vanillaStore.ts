@@ -1,55 +1,25 @@
-import { TaskList } from "src/primitives"
 import create from "zustand/vanilla"
+import { TaskStore, task_reducer } from "./taskSlice"
+import { TaskListStore, tasklist_reducer } from "./taskListSlice"
 
-export const actions = {
-  taskList: { 
-    setTaskList: "setTaskList",
-    sendBottom: "sendBottom",
-    end_tasklist: "endTasklist",
-    toggle_loop: "toggle_loop",
-    stop: "stop",
-    start: "start",
-  },
-  task: {
-    tick: "tick",
-    setTask: "setTask"
-  }
-}
-
-
-const task_reducer = (state: TaskStore , type: string, payload: TaskStore) => {
-  switch (type) {
-    // case actions.tick:
-  }
-}
-
-
-interface TaskListStore {
-  name: string
-  tasks: TaskStore[]
-  looping: boolean
-  timer: ReturnType<typeof setTimeout> | null
-  isPlaying: boolean
-}
-interface TaskStore {
-  id: string
-  name: string
-  length: number
-  remaining_seconds: number
-}
-
-export const TaskStore = create<TaskStore>()((set) => ({
+const TaskStore = create<TaskStore>()((set, get) => ({
+  status: "OVER",
   id: "",
   name: "",
   length: -1,
   remaining_seconds: -1,
+  dispatch: (type: string, data: TaskStore) =>
+    set((state) => task_reducer(state, type, data)),
 }))
 
-export const TaskListStore = create<TaskListStore>()((set) => ({
+export const TimerStore = create<TaskListStore>()((set) => ({
+  status: "IDLE",
   name: "",
   tasks: [],
   looping: false,
   timer: null,
   isPlaying: false,
   ...TaskStore,
+  dispatch: (type: string, data: TaskListStore) =>
+    set((state) => tasklist_reducer(state, type, data)),
 }))
