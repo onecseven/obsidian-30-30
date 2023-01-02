@@ -15,8 +15,9 @@ esbuild.build({
 	banner: {
 		js: banner,
 	},
-	entryPoints: ['main.ts'],
+	entryPoints: ['main.tsx'],
 	bundle: true,
+	minify: true,
 	external: [
 		'obsidian',
 		'electron',

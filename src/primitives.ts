@@ -52,7 +52,6 @@ export class Task implements Task {
 export class TaskList implements TaskList {
   name: string
   tasks: Task[] = [new StopTask(() => this.stop())]
-  id: string = getUniqueID()
   private looping = false // ignore StopTask or not
   private timer: ReturnType<typeof setTimeout> | null = null
 
@@ -77,7 +76,7 @@ export class TaskList implements TaskList {
     this.tasks = result
     if (wasPlaying) this.start()
   }
-  
+
   private end_tasklist() {
     this.looping ? 
     this.start() :
