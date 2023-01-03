@@ -2,7 +2,7 @@ import create from "zustand/vanilla"
 import { TaskStore, task_reducer } from "./taskSlice"
 import { TaskListStore, tasklist_reducer } from "./taskListSlice"
 
-const TaskStore = create<TaskStore>()((set, get) => ({
+export const TaskStor = create<TaskStore>()((set, get) => ({
   status: "OVER",
   id: "",
   name: "",
@@ -19,7 +19,7 @@ export const TimerStore = create<TaskListStore>()((set) => ({
   looping: false,
   timer: null,
   isPlaying: false,
-  ...TaskStore,
+  ...TaskStor,
   dispatch: (type: string, data: TaskListStore) =>
     set((state) => tasklist_reducer(state, type, data)),
 }))

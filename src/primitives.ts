@@ -67,7 +67,7 @@ export class TaskList implements TaskList {
   get isPlaying() {
     return this.timer !== null
   }
-  
+
   private send_task_to_bottom() {
     let wasPlaying = this.isPlaying
     if (this.isPlaying) this.stop()
@@ -78,11 +78,8 @@ export class TaskList implements TaskList {
   }
 
   private end_tasklist() {
-    this.looping ? 
-    this.start() :
-    this.stop()
+    this.looping ? this.start() : this.stop()
   }
-
 
   start() {
     if (this.isPlaying) this.stop()
@@ -103,5 +100,37 @@ export class TaskList implements TaskList {
 
   update(tasks: Task[]) {
     //when the tasklist file changes, lets try to keep the remaining lengths if possible
+  }
+}
+
+export namespace Plain {
+  export class StopTask {
+    id = getUniqueID()
+    name = "BREAK"
+    length = 0
+    remaining_seconds = 0
+  }
+  export class Task {
+    id: string = getUniqueID()
+    name: string
+    length: number
+    remaining_seconds: number
+    constructor(_name: string, _length: number) {
+      this.name = _name
+      this.length = _length
+      // this.remaining_seconds = _length * 60
+      this.remaining_seconds = _length //dev
+      this.id
+    }
+  }
+  export class TaskList {
+    name: string
+    tasks: Plain.Task[] = [new Plain.StopTask()]
+    looping = false // ignore StopTask or not
+    timer: ReturnType<typeof setTimeout> | null = null
+    constructor(_name: string, _tasks: Task[]) {
+      this.name = _name
+      this.tasks = _tasks.concat(this.tasks)
+    }
   }
 }

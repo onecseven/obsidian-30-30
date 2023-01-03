@@ -23,9 +23,11 @@ export const task_reducer = (
       return { status: "TICKING" }
     }
     case actions.task.tick: {
-      if (state.remaining_seconds - 1 === 0) {
-        console.log("over")
-        return { status: "OVER", remaining_seconds: state.length }
+      if (state.remaining_seconds - 2 <= 0) {
+        return {
+          status: "OVER",
+          remaining_seconds: state.remaining_seconds - 1,
+        }
       } else {
         return {
           status: "TICKING",
@@ -44,5 +46,5 @@ export interface TaskStore {
   name: string
   length: number
   remaining_seconds: number
-  dispatch: (type: string, data: TaskStore | null) => void
+  dispatch: (type: string, data: Partial<TaskStore> | null) => void
 }
