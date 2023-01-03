@@ -3,6 +3,7 @@ const actions = {
     tick: "tick",
     startTick: "startTick",
     setTask: "setTask",
+    pause: "pause"
   },
 }
 
@@ -19,8 +20,14 @@ export const task_reducer = (
         ...payload,
       }
     }
+    case actions.task.pause: {
+      return {
+        ...state,
+        status: "OVER"
+      }
+    }
     case actions.task.startTick: {
-      return { status: "TICKING" }
+      return { status: "TICKING", start_tick: new Date()}
     }
     case actions.task.tick: {
       if (state.remaining_seconds - 2 <= 0) {
@@ -46,5 +53,6 @@ export interface TaskStore {
   name: string
   length: number
   remaining_seconds: number
+  start_tick: Date | null
   dispatch: (type: string, data: Partial<TaskStore> | null) => void
 }

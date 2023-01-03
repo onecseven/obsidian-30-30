@@ -23,6 +23,7 @@ export const actions = {
     tick: "tick",
     startTick: "startTick",
     setTask: "setTask",
+    pause: "pause",
   },
 }
 
@@ -53,6 +54,7 @@ export const tasklist_reducer = (
     }
     case actions.taskList.stop: {
       if (state.timer) clearInterval(state.timer)
+      state.getState().dispatch(actions.task.pause, null)
       return { timer: null, status: "IDLE" }
     }
     case actions.taskList.toggleLoop: {
@@ -65,7 +67,11 @@ export const tasklist_reducer = (
       let tasks = state.tasks.slice(1)
       /* Depending on how the action was called we need to move the finished task differenly */
       if (payload === "preserve") tasks.push({ ...state.getState() })
-      else tasks.push({ ...state.getState(), remaining_seconds: state.getState().length,})
+      else
+        tasks.push({
+          ...state.getState(),
+          remaining_seconds: state.getState().length,
+        })
 
       /* change the current task to the new front of the queue */
       taskDispatch(actions.task.setTask, { ...tasks[0] })
@@ -76,9 +82,10 @@ export const tasklist_reducer = (
         tasks.push(tasks.shift())
         taskDispatch(actions.task.setTask, { ...tasks[0] })
 
-        if (!state.looping) return { tasks, status: "IDLE"}
+        if (!state.looping) return { tasks, status: "IDLE" }
       }
-      if (state.status === "TIMER_ACTIVE") return { ...start_timer(state), tasks }
+      if (state.status === "TIMER_ACTIVE")
+        return { ...start_timer(state), tasks }
 
       /* handles calls when the timer is off */
       return {
