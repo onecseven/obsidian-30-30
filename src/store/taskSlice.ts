@@ -1,3 +1,5 @@
+import moment from 'moment';
+
 const actions = {
   task: {
     tick: "tick",
@@ -23,11 +25,16 @@ export const task_reducer = (
     case actions.task.pause: {
       return {
         ...state,
+        computed: null,
         status: "OVER"
       }
     }
     case actions.task.startTick: {
-      return { status: "TICKING", start_tick: new Date()}
+      let start = moment([])
+      return { status: "TICKING", 
+              start_tick: start,
+              computed: [start, start.clone().add(state.remaining_seconds, "seconds")]
+            }
     }
     case actions.task.tick: {
       if (state.remaining_seconds - 2 <= 0) {
@@ -49,10 +56,11 @@ export const task_reducer = (
 
 export interface TaskStore {
   status: "TICKING" | "OVER"
+  computed: [moment.Moment, moment.Moment] | null
   id: string
   name: string
   length: number
   remaining_seconds: number
-  start_tick: Date | null
+  start_tick: moment.Moment | null
   dispatch: (type: string, data: Partial<TaskStore> | null) => void
 }

@@ -27,17 +27,36 @@ export const actions = {
   },
 }
 
+let compute_times = (state: TaskListStore): TaskListStore["tasks"] => {
+  let [_, start] = state.getState().computed
+  let ends = [{ ...state.getState() }]
+
+  state.tasks.slice(1).forEach((task) => {
+    let [cStart, cEnd] = [
+      start.clone(),
+      start.clone().add(task.remaining_seconds, "seconds"),
+    ]
+    ends.push({ ...task, computed: [cStart, cEnd] })
+    start = cEnd.clone()
+  })
+  return ends
+}
+
+let set_timer = (state: TaskListStore) =>
+  setInterval(() => {
+    if (state.getState().status === "TICKING")
+      state.getState().dispatch(actions.task.tick, null)
+    else if (state.getState().status === "OVER")
+      state.dispatch(actions.taskList.sendBottom, null)
+  }, 1000)
+
 const start_timer = (state): Partial<TaskListStore> => {
   state.getState().dispatch(actions.task.startTick, null)
   return {
-    timer: setInterval(() => {
-      if (state.getState().status === "TICKING")
-        state.getState().dispatch(actions.task.tick, null)
-      else if (state.getState().status === "OVER")
-        state.dispatch(actions.taskList.sendBottom, null)
-    }, 1000),
+    timer: set_timer(state),
     isPlaying: true,
     status: "TIMER_ACTIVE",
+    tasks: compute_times(state),
   }
 }
 
@@ -55,7 +74,11 @@ export const tasklist_reducer = (
     case actions.taskList.stop: {
       if (state.timer) clearInterval(state.timer)
       state.getState().dispatch(actions.task.pause, null)
-      return { timer: null, status: "IDLE" }
+      return {
+        timer: null,
+        status: "IDLE",
+        tasks: state.tasks.map((task) => ({ ...task, computed: null })),
+      }
     }
     case actions.taskList.toggleLoop: {
       return { looping: !state.looping }
@@ -82,15 +105,21 @@ export const tasklist_reducer = (
         tasks.push(tasks.shift())
         taskDispatch(actions.task.setTask, { ...tasks[0] })
 
-        if (!state.looping) return { tasks, status: "IDLE" }
+        if (!state.looping) {
+          taskDispatch(actions.task.pause, null)
+          return {
+            tasks: tasks.map((task) => ({ ...task, computed: null })),
+            status: "IDLE",
+          }
+        }
       }
       if (state.status === "TIMER_ACTIVE")
-        return { ...start_timer(state), tasks }
+        return { ...start_timer({ ...state, tasks }) }
 
       /* handles calls when the timer is off */
       return {
         timer: null,
-        tasks,
+        tasks: tasks.map((task) => ({ ...task, computed: null })),
       }
     }
 
