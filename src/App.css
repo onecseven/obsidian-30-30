@@ -1,0 +1,52 @@
+.App {
+  margin: 1rem;
+  text-align: center;
+  font-family: 'Oswald', sans-serif;
+}
+
+.taskList {
+  width: 60%;
+  margin: 0 20% 0 20%;
+}
+
+
+.taskCard {
+  font-family: 'Oswald', sans-serif;
+  border-radius: 45px;
+  width: 10fr;
+  margin: 0 1.5fr 1.5fr 1.5fr;
+  height: 1fr;
+  background-color: #e10915;
+  color: #fcb2b6;
+  display: grid;
+  grid-template-columns: 1fr 9fr;
+  grid-template-rows: 6fr 3fr;
+  gap: 0px 0px;
+  grid-template-areas:
+    "icon taskName"
+    "length cTimes";
+}
+
+.icon {
+  grid-area: icon;
+}
+.length {
+  line-height: 5%;
+  font-size: 25px;
+  margin: 7% 0% 7% 50%;
+  grid-area: length;
+}
+.cTimes {
+  margin-left: auto;
+  margin-right: 25%;
+  line-height: 5%;
+  margin-top: 1%;
+  font-size: 25px;
+  grid-area: cTimes;
+}
+.taskName {
+  line-height: 5%;
+  font-size: 80px;
+  padding: 7% 0% 7% 15%;
+  grid-area: taskName;
+}
