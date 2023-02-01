@@ -151,11 +151,11 @@ export namespace Parser {
 
   let full_block = new RegExp(/\#\+(.)*?\-\#/gs)
 
-  export const contains_tasklist = (view: MarkdownView): boolean =>
-    full_block.test(view.data)
+  export const contains_tasklist = (view: string): boolean =>
+    full_block.test(view)
 
-  export const get_tasklist_blocks = (view: MarkdownView) =>
-    view.data.match(full_block)
+  export const get_tasklist_blocks = (view: string) =>
+    view.match(full_block)
 
   export const parse_tasklist = (match: string) => {
     let compromise = match.split("\n")
@@ -195,7 +195,7 @@ export namespace Parser {
     }
     return new TaskList(task_title, taskList)
   }
-  export const get_tasklists = (view: MarkdownView): TaskList[] => {
+  export const get_tasklists = (view: string): TaskList[] => {
     if (!contains_tasklist(view)) return []
     let matches = get_tasklist_blocks(view)!
     let result = []

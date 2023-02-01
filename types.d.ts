@@ -13,14 +13,3 @@ interface Task {
   done: () => void //resets remaining_length
   // there should be add5 and take5 or a computed length of the total but we dont need that right now
 }
-
-interface TaskList {
-  name: string
-  tasks: Task[]
-  looping: boolean 
-  send_task_to_bottom: () => void //sends task to the end of the array
-  start: () => void
-  stop: () => void
-  toggle_loop: () => void
-  update: () => void 
-}

@@ -60,12 +60,12 @@ skyying 10
 
 describe("Tasklist Block Parser", () => {
   test("string should be parsed as a block", () => {
-    expect(Parser.contains_tasklist({ data: test_text } as MarkdownView)).toBe(
+    expect(Parser.contains_tasklist(test_text)).toBe(
       true
     )
   }),
     test("string should not be parsed as a block", () => {
-      expect(Parser.contains_tasklist({ data: bad_text } as MarkdownView)).toBe(
+      expect(Parser.contains_tasklist(bad_text)).toBe(
         false
       )
     })

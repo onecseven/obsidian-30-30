@@ -1,4 +1,51 @@
-import { throws } from "assert"
+
+const colors = [
+  "gray",
+  "orange",
+  "red",
+  "green",
+  "blue",
+  "forest",
+  "yellow",
+  "violet",
+  "purple",
+  "pink",
+  "aqua",
+] as const 
+
+export type Color = typeof colors[number]
+
+let shuffleArray = <T>(arr: T[]): T[] => {
+  let array = arr.slice()
+  for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array
+}
+
+let setup_color_generator = () => {
+  const colors_default: Color[] = [
+    "gray",
+    "orange",
+    "red",
+    "green",
+    "blue",
+    "forest",
+    "yellow",
+    "violet",
+    "purple",
+    "pink",
+    "aqua",
+  ]
+  let current_colors = shuffleArray(colors_default)
+  return (): Color => {
+    if (!current_colors.length) current_colors = shuffleArray(colors_default)
+    return current_colors.pop()!
+  }
+}
+
+let get_color = setup_color_generator()
 
 function getUniqueID() {
   function s4() {
@@ -9,21 +56,13 @@ function getUniqueID() {
   return s4() + s4() + "-" + s4()
 }
 
-export class StopTask implements StopTask {
+export class StopTask {
+  color: Color = "gray"
   id = getUniqueID()
-  name = "BREAK"
+  status = "OVER"
+  name = "_BREAK"
   length = 0
   remaining_seconds = 0
-  stopcall: () => void
-  constructor(stopcall: () => void) {
-    this.stopcall = stopcall
-  }
-  tick(cb: () => void) {
-    // this order matters
-    cb()
-    this.stopcall()
-    return null
-  }
 }
 
 export class Task implements Task {
@@ -31,106 +70,27 @@ export class Task implements Task {
   name: string
   length: number
   remaining_seconds: number
+  color: Color
 
   constructor(_name: string, _length: number) {
+    this.color = get_color()
     this.name = _name
-    this.length = _length
+    this.length = _length * 60
     this.remaining_seconds = _length * 60
     // this.remaining_seconds = _length //dev
-
     this.id
-  }
-
-  tick(onEnd: () => void) {
-    console.count("tick")
-    this.remaining_seconds - 1
-      ? this.remaining_seconds--
-      : (this.remaining_seconds = this.length) && onEnd()
   }
 }
 
 export class TaskList implements TaskList {
+  id = getUniqueID()
   name: string
-  tasks: Task[] = [new StopTask(() => this.stop())]
-  private looping = false // ignore StopTask or not
-  private timer: ReturnType<typeof setTimeout> | null = null
+  tasks: Task[] = [new StopTask()]
+  looping = false // ignore StopTask or not
+  timer: ReturnType<typeof setTimeout> | null = null
 
   constructor(_name: string, _tasks: Task[]) {
     this.name = _name
-    this.tasks = [..._tasks.slice(), new StopTask(() => this.end_tasklist())]
-  }
-
-  private get current_task(): Task {
-    return this.tasks[0]
-  }
-
-  get isPlaying() {
-    return this.timer !== null
-  }
-
-  private send_task_to_bottom() {
-    let wasPlaying = this.isPlaying
-    if (this.isPlaying) this.stop()
-    let result = this.tasks.slice()
-    result.push(result.shift()!)
-    this.tasks = result
-    if (wasPlaying) this.start()
-  }
-
-  private end_tasklist() {
-    this.looping ? this.start() : this.stop()
-  }
-
-  start() {
-    if (this.isPlaying) this.stop()
-    this.timer = setInterval(
-      () => this.current_task.tick(() => this.send_task_to_bottom()),
-      1000
-    )
-  }
-
-  stop() {
-    clearInterval(this.timer!)
-    this.timer = null
-  }
-
-  toggle_loop() {
-    this.looping = !this.looping
-  }
-
-  update(tasks: Task[]) {
-    //when the tasklist file changes, lets try to keep the remaining lengths if possible
-  }
-}
-
-export namespace Plain {
-  export class StopTask {
-    id = getUniqueID()
-    name = "BREAK"
-    length = 0
-    remaining_seconds = 0
-  }
-  export class Task {
-    id: string = getUniqueID()
-    name: string
-    length: number
-    remaining_seconds: number
-    constructor(_name: string, _length: number) {
-      this.name = _name
-      this.length = _length
-      // this.remaining_seconds = _length * 60
-      this.remaining_seconds = _length //dev
-      this.id
-    }
-  }
-  export class TaskList {
-    name: string
-    tasks: Plain.Task[] = [new Plain.StopTask()]
-    looping = false // ignore StopTask or not
-    timer: ReturnType<typeof setTimeout> | null = null
-    constructor(_name: string, _tasks: Task[]) {
-      this.name = _name
-      this.tasks = _tasks.concat(this.tasks)
-    }
+    this.tasks = [..._tasks.slice(), new StopTask()]
   }
 }
