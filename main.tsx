@@ -2,19 +2,20 @@ import {
   App,
   Editor,
   MarkdownView,
-  Modal,
-  Notice,
   Plugin,
   PluginSettingTab,
+  Notice,
   Setting,
   ItemView,
   WorkspaceLeaf,
 } from "obsidian"
 import parser from "src/parser"
-import { ReactView } from "./src/App"
+import Opp from "./src/App"
 import * as React from "react"
 import * as ReactDOM from "react-dom"
 import { createRoot } from "react-dom/client"
+import { PickerStor, TimerStore, TaskStor } from "src/store/vanillastore"
+import { seconds_to_mmss } from "src/components/Shared/seconds_to_mmss"
 // Remember to rename these classes and interfaces!
 
 interface MyPluginSettings {
@@ -25,44 +26,40 @@ const DEFAULT_SETTINGS: MyPluginSettings = {
   mySetting: "default",
 }
 
-const VIEW_TYPE_EXAMPLE = "30/31"
+const TIMER_VIEW_TYPE = "30/31"
 
 export default class MyPlugin extends Plugin {
   settings: MyPluginSettings
-    
+  status_bar: HTMLElement
   async activateView() {
-    this.app.workspace.detachLeavesOfType(VIEW_TYPE_EXAMPLE);
+    this.app.workspace.detachLeavesOfType(TIMER_VIEW_TYPE)
 
     await this.app.workspace.getRightLeaf(false).setViewState({
-      type: VIEW_TYPE_EXAMPLE,
-      active: true,
-    });
-
-    this.app.workspace.revealLeaf(
-      this.app.workspace.getLeavesOfType(VIEW_TYPE_EXAMPLE)[0]
-    );
-  }
+      type: TIMER_VIEW_TYPE,
+      active: true, 
+    })
   
-  async onload() {
+    this.app.workspace.revealLeaf(
+      this.app.workspace.getLeavesOfType(TIMER_VIEW_TYPE)[0]
+    )
+  }
 
-    this.registerView(
-      VIEW_TYPE_EXAMPLE,
-      (leaf) => new SampleModal(leaf)
-    )
+  async onload() {
+    this.registerView(TIMER_VIEW_TYPE, (leaf) => new SampleModal(leaf))
     // This creates an icon in the left ribbon.
-    this.addRibbonIcon(
-      "dice",
-      "Sample Plugin",
-      (evt: MouseEvent) => {
-        this.activateView()
-      }
-    )
-    // Perform additional things with the ribbon
-    // ribbonIconEl.addClass("my-plugin-ribbon-class")
+    this.addRibbonIcon("timer", "30/31", async (evt: MouseEvent) => {
+      if (this.app.workspace.getLeavesOfType(TIMER_VIEW_TYPE).length > 0)
+        this.app.workspace.detachLeavesOfType(TIMER_VIEW_TYPE)
+      else this.activateView()
+    })
 
     // This adds a status bar item to the bottom of the app. Does not work on mobile apps.
-    // const statusBarItemEl = this.addStatusBarItem()
-    // statusBarItemEl.setText("Status Bar Text")
+    this.status_bar = this.addStatusBarItem()
+    TaskStor.subscribe((state) => {
+      if (state.status === "TICKING")
+        this.status_bar.innerHTML = `<span>[Task: <u><strong>${state.name}</strong></u> - ${seconds_to_mmss(state.remaining_seconds)}]</span>`
+      else this.status_bar.setText("[Timer Paused]")
+    })
 
     // This adds a simple command that can be triggered anywhere
     // this.addCommand({
@@ -77,10 +74,8 @@ export default class MyPlugin extends Plugin {
     this.addCommand({
       id: "parse-current-file",
       name: "parse-current-file",
-      editorCallback: (editor: Editor, view: MarkdownView) => {
-        console.log(`does the file contain a tasklisk block`)
-        console.log(parser(view))
-      },
+      editorCallback: (editor: Editor, view: MarkdownView) =>
+        this.parse(view.data),
     })
 
     // this.addCommand({
@@ -103,8 +98,6 @@ export default class MyPlugin extends Plugin {
     //   },
     // })
 
-
-
     // This adds a settings tab so the user can configure various aspects of the plugin
     // this.addSettingTab(new SampleSettingTab(this.app, this));
 
@@ -118,8 +111,19 @@ export default class MyPlugin extends Plugin {
     // this.registerInterval(window.setInterval(() => console.log('setInterval'), 5 * 60 * 1000));
   }
 
+  parse(data: string) {
+    let tasklists = parser(data)
+    if (tasklists.length) {
+      TimerStore.getState().dispatch("setTaskList", tasklists[0])
+      PickerStor.getState().dispatch("set", tasklists)
+    } else {
+      new Notice("No timer found - Check formatting.")
+    }
+  }
+
   onunload() {
-    this.app.workspace.detachLeavesOfType(VIEW_TYPE_EXAMPLE);
+    this.app.workspace.detachLeavesOfType(TIMER_VIEW_TYPE)
+    this.status_bar.remove()
   }
 
   async loadSettings() {
@@ -137,18 +141,18 @@ class SampleModal extends ItemView {
   }
 
   getViewType() {
-    return VIEW_TYPE_EXAMPLE
+    return TIMER_VIEW_TYPE
   }
 
   getDisplayText() {
-    return "Example view"
+    return "30/31"
   }
 
   async onOpen() {
     const root = createRoot(this.containerEl.children[1])
     root.render(
       <React.StrictMode>
-        <ReactView />
+        <Opp />
       </React.StrictMode>
     )
   }
